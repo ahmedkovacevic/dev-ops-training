@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: visits-service
+  labels:
+    srv: visits-service
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      srv: visits-service
+  template:
+    metadata:
+      labels:
+        srv: visits-service
+    spec:
+      restartPolicy: Always
+      containers:
+      - name: visits-service
+        image: springcommunity/spring-petclinic-visits-service
+        resources:
+          limits:
+            memory: "512M"
+        command: ["./dockerize","-wait=tcp://discovery-server:8761","-timeout=60s","--","java", "org.springframework.boot.loader.JarLauncher"]
+        ports:
+        - name: port8082
+          containerPort: 8082
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: visits-service
+spec:
+  selector:
+    srv: visits-service
+  ports:
+    - port: 8082
+      targetPort: 8082

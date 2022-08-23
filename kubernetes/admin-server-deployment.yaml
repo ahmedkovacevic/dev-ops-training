@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: admin-server
+  labels:
+    srv: admin-server
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      srv: admin-server
+  template:
+    metadata:
+      labels:
+        srv: admin-server
+    spec:
+      restartPolicy: Always
+      containers:
+      - name: admin-server
+        image: springcommunity/spring-petclinic-admin-server
+        resources:
+          limits:
+            memory: "512M"
+        command: ["./dockerize","-wait=tcp://discovery-server:8761","-timeout=60s","--","java", "org.springframework.boot.loader.JarLauncher"]
+        ports:
+        - name: port9090
+          containerPort: 9090
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: admin-server
+spec:
+  selector:
+    srv: admin-server
+  ports:
+    - port: 9090
+      targetPort: 9090
